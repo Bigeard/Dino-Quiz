@@ -1,9 +1,7 @@
 <template>
   <div class="home">
     <div class="content">
-      <gb-heading tag="h1" class="logo"
-        >Dino <img src="../assets/game/zorfiL.gif" alt="Dino" width="74" height="74"
-      /></gb-heading>
+      <gb-heading tag="h1" class="logo">Dino Quiz</gb-heading>
       <!-- Download button -->
       <div v-if="deferredPrompt">
         <gb-heading tag="h2">Install Application</gb-heading>
@@ -28,26 +26,20 @@
         </div>
       </div>
       <!-- Navigation -->
-      <div class="nav" v-if="user.pass_id">
-        <gb-input
-          label="Search Game !"
-          placeholder="Enter the code..."
-          v-model="code_game"
-          :disabled="!user.pass_id || !online"
-        />
+      <div class="nav" v-if="token">
         <gb-button
-          :disabled="!user.pass_id || waitCreate || !online"
-          @click="creatNewGame()"
+          :disabled="!token || !online"
+          @click="newGame()"
           right-icon="add"
         >
-          New Game
+          New Quiz
         </gb-button>
         <gb-button
-          :disabled="!user.pass_id"
-          @click="$router.push('/allgames')"
+          :disabled="!token"
+          @click="$router.push('/history')"
           right-icon="search"
         >
-          My Games
+          History
         </gb-button>
         <gb-button @click="$router.push('/about')" right-icon="info">
           About
@@ -56,27 +48,55 @@
       <gb-divider />
       <!-- User Info -->
       <div class="user">
-        <div class="username">
+        <div class="email">
           <gb-input
-            v-model="username"
-            label="Username"
-            placeholder="Username is required"
-            :info="info"
-            :error="error"
-            :status="status"
-            @submit="checkUsername"
+            v-model="email"
+            label="Email"
+            placeholder="Email is required"
+            :error="errorEmail"
+            :status="statusEmail"
+            @submit="checkAuth"
+          />
+        </div>
+        <br />
+        <div class="password">
+          <gb-input
+            v-model="password"
+            label="Password"
+            type="password"
+            placeholder="Password is required"
+            :error="errorPassword"
+            :status="statusPassword"
+            @submit="checkAuth"
           />
           <gb-button
-            @click="checkUsername"
-            :class="status + '_valid'"
-            :disabled="waitName"
+            @click="checkAuth"
+            :disabled="waitAuth"
+            :class="statusPassword + '_valid'"
           >
-            Validate
+            Connect
           </gb-button>
         </div>
-        <!-- <p v-if="user.pass_id">
-          Pass ID :
-          <span class="pass_id">{{ user.pass_id }}</span>
+        <gb-divider />
+        <gb-button @click="$router.push('/signup')" full-width>
+          Sign up
+        </gb-button>
+        <gb-button @click="$router.push('/history')" style="width: 100%">
+          History
+        </gb-button>
+        <gb-button @click="$router.push('/new-quiz')" style="width: 100%">
+          New Quiz
+        </gb-button>
+        <gb-button @click="$router.push('/quiz')" style="width: 100%">
+          Quiz
+        </gb-button>
+        <gb-button @click="$router.push('/about')" style="width: 100%">
+          About
+        </gb-button>
+
+        <!-- <p v-if="token">
+          Token :
+          <span class="token">{{ token }}</span>
         </p> -->
       </div>
     </div>
@@ -89,52 +109,31 @@ import axios from "axios";
 export default {
   name: "Home",
   async beforeMount() {
-    let user = await this.$db.user.get({ id: 0 });
-    if (user === undefined) {
-      user = {
-        id: 0,
-        _id: null,
-        username: "",
-        pass_id: null,
-        updated_at: new Date()
-      };
-      await this.$db.user.add(user);
-      // eslint-disable-next-line no-empty
-    }
-    this.onChangeUsername(user.username);
-    if (this.status === "normal") {
-      this.username = user.username;
-      this.user = user;
-    }
     window.addEventListener("online", () => (this.online = true));
     window.addEventListener("offline", () => (this.online = false));
   },
   data() {
     return {
-      code_game: null,
-      username: null,
-      info: null,
+      token: null,
+      email: null,
+      password: null,
       error: null,
-      waitCreate: false,
-      waitName: false,
-      status: "normal",
-      user: {
-        _id: null,
-        username: null,
-        pass_id: null
-      },
+      errorEmail: null,
+      errorPassword: null,
+      waitAuth: true,
+      statusEmail: "warning",
+      statusPassword: "warning",
+      status: "warning",
       deferredPrompt: null,
       online: true
     };
   },
   watch: {
-    code_game(v) {
-      if (v.length > 35) {
-        this.$router.push("/room/" + v);
-      }
+    email(v) {
+      this.onChangeEmail(v);
     },
-    username(v) {
-      this.onChangeUsername(v);
+    password(v) {
+      this.onChangePassword(v);
     }
   },
   created() {
@@ -148,64 +147,71 @@ export default {
     });
   },
   methods: {
-    onChangeUsername(v) {
+    onChangeEmail(v) {
       if (v.length === 0) {
-        this.info = "Please add a username to start playing";
-        this.status = "warning";
-        this.error = null;
-      } else if (v.length < 3) {
-        this.error = "A minimum of 3 characters is required";
-        this.status = "error";
-        this.info = null;
-      } else if (v.length > 13) {
-        this.error = "A maximum of 12 characters is required";
-        this.status = "error";
-        this.info = null;
-      } else if (!/^[\w.]*$/.test(v)) {
-        this.error =
-          'you can only use the following characters: "A-z" "0-9" "_"';
-        this.status = "error";
-        this.info = null;
+        this.statusEmail = "warning";
+        this.errorEmail = null;
+      } else if (
+        !/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(
+          v
+        )
+      ) {
+        this.errorEmail = "You can only use email format";
+        this.statusEmail = "error";
       } else {
-        this.info = null;
-        this.error = null;
+        this.errorEmail = null;
+        this.statusEmail = "normal";
+      }
+
+      if (this.statusEmail === "normal" && this.statusPassword === "normal") {
+        this.waitAuth = false;
         this.status = "normal";
+      } else {
+        this.waitAuth = true;
+        this.status = "error";
       }
     },
-    async checkUsername() {
-      this.waitName = true;
-      if (this.status === "normal") {
-        let user = await this.$db.user.get({ id: 0 });
-        var self = this;
-        if (!user.pass_id) {
+    onChangePassword(v) {
+      if (v.length === 0) {
+        this.statusPassword = "warning";
+        this.errorPassword = null;
+      } else if (v.length < 8) {
+        this.errorPassword = "A minimum of 8 characters is required";
+        this.statusPassword = "error";
+      } else {
+        this.errorPassword = null;
+        this.statusPassword = "normal";
+      }
+
+      if (this.statusEmail === "normal" && this.statusPassword === "normal") {
+        this.waitAuth = false;
+        this.status = "normal";
+      } else {
+        this.waitAuth = true;
+        this.status = "error";
+      }
+    },
+    async checkAuth() {
+      if (!this.token) {
+        if (this.statusEmail === "normal" && this.statusPassword === "normal") {
+          this.waitAuth = false;
+          this.status = "normal";
           await axios
-            .post("https://dino-srv.azurewebsites.net/api/user/create", {
-              username: this.username
+            .post("http://localhost:3000/api/v1/signin", {
+              email: this.email,
+              password: this.password
             })
             .then(response => {
-              user.username = response.data.username;
-              user.pass_id = response.data.passId;
-              user._id = response.data._id;
+              this.token = response.data.token;
             })
             .catch(() => {
               self.status = "error";
-              self.error = "Cannot connect to the server";
+              self.errorEmail = "Cannot connect to the server";
             });
         } else {
-          user.username = this.username;
-          await axios
-            .patch("https://dino-srv.azurewebsites.net/api/user/update", {
-              username: this.username,
-              passId: user.pass_id
-            })
-            .catch(() => {
-              self.status = "error";
-              self.error = "Cannot connect to the server";
-            });
+          this.waitAuth = true;
+          this.status = "error";
         }
-        await this.$db.user.update(0, user);
-        this.user = user;
-        this.waitName = false;
       }
     },
     async install() {
@@ -215,22 +221,8 @@ export default {
       }, 1000);
       this.deferredPrompt.prompt();
     },
-    async creatNewGame() {
-      this.waitCreate = true;
-      const self = this;
-      const passId = {
-        passId: this.user.pass_id
-      };
-      axios
-        .post("https://dino-srv.azurewebsites.net/api/game/create", passId)
-        .then(async response => {
-          this.$router.push("/room/" + response.data.code);
-          self.waitCreate = false;
-        })
-        .catch(error => {
-          console.error("There was an error!", error);
-          self.waitCreate = false;
-        });
+    async newGame() {
+      this.$router.push("/new-quiz");
     }
   }
 };
@@ -243,9 +235,8 @@ export default {
   justify-content: center;
   height: 100vh;
 
-  .error_valid,
-  .warning_valid {
-    display: none;
+  .error_valid {
+    margin-bottom: 50px;
   }
 
   .content {
@@ -267,7 +258,7 @@ export default {
     }
   }
 
-  .username {
+  .password {
     display: flex;
     align-items: flex-end;
     // margin-bottom: 30px;
@@ -282,7 +273,7 @@ export default {
     }
   }
 
-  .pass_id {
+  .token {
     margin-left: 10px;
     background-color: #222c3c;
     box-shadow: 0 1px 5px 0 #18191a;

@@ -1,0 +1,11 @@
+{
+  "name": "Dino Quiz",
+  "short_name": "Dino",
+  "description": "Dino Quiz Project !",
+  "start_url": "/",
+  "scope": ".",
+  "theme_color": "#0093ee",
+  "background_color": "#1b2431",
+  "display": "fullscreen",
+  "orientation": "portrait"
+}

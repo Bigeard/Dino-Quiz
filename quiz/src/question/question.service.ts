@@ -15,4 +15,23 @@ export class QuestionService {
   async findAll(): Promise<Question[]> {
     return this.questionModel.find().exec();
   }
+
+  async findAllWithParameters(
+    amount_question: number,
+    category: string,
+    difficulty: string,
+  ): Promise<Question[]> {
+    let quiz = [];
+    let i = 1;
+    let questions = await this.questionModel.find({ category, difficulty });
+    questions.forEach(question => {
+      if (i === amount_question) {
+        return quiz;
+      } else {
+        quiz.push(question);
+        i++;
+      }
+    });
+    return quiz;
+  }
 }

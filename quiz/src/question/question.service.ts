@@ -23,7 +23,14 @@ export class QuestionService {
   ): Promise<Question[]> {
     let quiz = [];
     let i = 1;
-    let questions = await this.questionModel.find({ category, difficulty });
+    let questions;
+    if (!category) {
+      questions = await this.questionModel.find({ difficulty });
+    } else if (!difficulty) {
+      questions = await this.questionModel.find({ category });
+    } else {
+      questions = await this.questionModel.find({ category, difficulty });
+    }
     questions.forEach(question => {
       if (i === amount_question) {
         return quiz;

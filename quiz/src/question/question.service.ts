@@ -13,7 +13,8 @@ export class QuestionService {
   ) {}
 
   async findAll(): Promise<Question[]> {
-    return this.questionModel.find().exec();
+    let questions = await this.questionModel.find();
+    return questions;
   }
 
   async findAllWithParameters(
@@ -22,7 +23,6 @@ export class QuestionService {
     difficulty: string,
   ): Promise<Question[]> {
     let quiz = [];
-    let i = 1;
     let questions;
     if (!category) {
       questions = await this.questionModel.find({ difficulty });
@@ -31,14 +31,11 @@ export class QuestionService {
     } else {
       questions = await this.questionModel.find({ category, difficulty });
     }
-    questions.forEach(question => {
-      if (i === amount_question) {
-        return quiz;
-      } else {
-        quiz.push(question);
-        i++;
-      }
-    });
+    if (questions.length < amount_question) {
+      quiz = questions;
+    } else {
+      quiz = questions.slice(0, amount_question);
+    }
     return quiz;
   }
 }

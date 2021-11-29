@@ -8,7 +8,7 @@ export class QuestionController {
 
   @Get('/all')
   async findAll(): Promise<Question[]> {
-    return this.questionService.findAll();
+    return await this.questionService.findAll();
   }
 
   @Get('')
@@ -17,7 +17,7 @@ export class QuestionController {
     @Query('category') category: string,
     @Query('difficulty') difficulty: string,
   ): Promise<Question[]> {
-    return this.questionService.findAllWithParameters(
+    return await this.questionService.findAllWithParameters(
       amount_question,
       category,
       difficulty,

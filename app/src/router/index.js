@@ -37,7 +37,8 @@ const routes = [
   {
     path: "/quiz",
     name: "Quiz",
-    component: Quiz
+    component: Quiz,
+    props: true
   },
   {
     path: "/signup",

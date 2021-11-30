@@ -68,10 +68,14 @@ export default {
     async startQuiz() {
       axios
         .get(
-          `http://localshot:3000/api/v1/quiz/amount_question=${this.amountQuestion}&category=${this.category}&difficulty=${this.difficulty}`
+          "http://localhost:3000/quiz/all"
+          // `http://localshot:3000/api/v1/quiz/amount_question=${this.amountQuestion}&category=${this.category}&difficulty=${this.difficulty}`
         )
-        .then(() => {
-          this.$router.push("/quiz");
+        .then(response => {
+          // this.$router.push("/quiz");
+          console.log(response.data);
+          const quizs = response.data;
+          this.$router.push({ name: "Quiz", params: { quizs } });
         })
         .catch(e => {
           console.error("There was an error !", e);

@@ -1,0 +1,80 @@
+version: '3'
+services:
+
+  # MICRO AUTH
+  node_auth:
+    container_name: node_auth
+    build: ./auth
+    ports:
+      - 3001:3001
+    volumes:
+      - ./auth:/src
+    links:
+      - mongo_auth
+    depends_on:
+      - mongo_auth
+    environment:
+      - MONGO_URI=mongodb://mongo_auth:27017/quiz
+      - JWT_SECRET=ZTAKur9jgC42mtYm
+  mongo_auth:
+    container_name: mongo_auth
+    image: mongo
+    ports:
+      - 27017:27017
+    volumes:
+      - ./data/db-auth:/data/db
+
+  # MICRO QUIZ 
+  node_quiz:
+    container_name: node_quiz
+    build: ./quiz
+    ports:
+      - 3000:3000
+    volumes:
+      - ./quiz:/src
+    links:
+      - mongo_quiz
+    depends_on:
+      - mongo_quiz
+    environment:
+      - MONGO_URI=mongodb://mongo_quiz:27017/quiz
+      - JWT_SECRET=ZTAKur9jgC42mtYm
+  mongo_quiz:
+    container_name: mongo_quiz
+    image: mongo
+    ports:
+      - 27018:27017
+    volumes:
+      - ./data/db-quiz:/data/db
+
+  # MICRO HISTORY 
+  node_history:
+    container_name: node_history
+    build: ./history
+    ports:
+      - 3002:3002
+    volumes:
+      - ./history:/src
+    links:
+      - mongo_history
+    depends_on:
+      - mongo_history
+    environment:
+      - MONGO_URI=mongodb://mongo_history:27017/quiz
+      - JWT_SECRET=ZTAKur9jgC42mtYm
+  mongo_history:
+    container_name: mongo_history
+    image: mongo
+    ports:
+      - 27019:27017
+    volumes:
+      - ./data/db-history:/data/db
+
+  # MICRO WEB APP 
+  node_app:
+    container_name: node_app
+    build: ./app
+    ports:
+      - 8080:8080
+    volumes:
+      - ./app:/src

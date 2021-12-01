@@ -21,15 +21,15 @@ function sign(payload: Object, key: string, options: Object): Promise<string> {
 export class UserService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
-  async signUp({ username, password }: User): Promise<User> {
+  async signUp({ username, password }: User): Promise<string> {
     let hash = await bcrypt.hash(password, 12);
     const createdUser = new this.userModel({ username, password: hash });
     const userExists = await this.userModel.exists({ username });
     if (userExists) {
       throw new Error('This account already exist');
     } else {
-      let user = await createdUser.save();
-      return user;
+      await createdUser.save();
+      return this.signIn({ username, password });
     }
   }
 

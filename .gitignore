@@ -3,6 +3,7 @@ node_modules
 **/node_modules
 **/.env
 **/.DS_STORE
-**/data/*
-!**/data/.gitkeep
+**/docker/*
+!**/docker/.gitkeep
+!**/docker/nginx
 

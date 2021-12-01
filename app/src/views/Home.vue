@@ -1,9 +1,7 @@
 <template>
   <div class="home">
     <div class="content">
-      <gb-heading tag="h1" class="logo"
-        >Dino <img src="../assets/game/zorfiL.gif" alt="Dino" width="74" height="74"
-      /></gb-heading>
+      <gb-heading tag="h1" class="logo">Dino Quiz</gb-heading>
       <!-- Download button -->
       <div v-if="deferredPrompt">
         <gb-heading tag="h2">Install Application</gb-heading>
@@ -28,26 +26,20 @@
         </div>
       </div>
       <!-- Navigation -->
-      <div class="nav" v-if="user.pass_id">
-        <gb-input
-          label="Search Game !"
-          placeholder="Enter the code..."
-          v-model="code_game"
-          :disabled="!user.pass_id || !online"
-        />
+      <div class="nav" v-if="token">
         <gb-button
-          :disabled="!user.pass_id || waitCreate || !online"
-          @click="creatNewGame()"
+          :disabled="!token || !online"
+          @click="newGame()"
           right-icon="add"
         >
-          New Game
+          New Quiz
         </gb-button>
         <gb-button
-          :disabled="!user.pass_id"
-          @click="$router.push('/allgames')"
+          :disabled="!token"
+          @click="$router.push('/history')"
           right-icon="search"
         >
-          My Games
+          History
         </gb-button>
         <gb-button @click="$router.push('/about')" right-icon="info">
           About
@@ -55,29 +47,45 @@
       </div>
       <gb-divider />
       <!-- User Info -->
-      <div class="user">
+      <div class="user" v-if="!token">
         <div class="username">
           <gb-input
             v-model="username"
             label="Username"
             placeholder="Username is required"
-            :info="info"
-            :error="error"
-            :status="status"
-            @submit="checkUsername"
+            :error="errorUsername"
+            :status="statusUsername"
+            @submit="checkAuth"
+          />
+        </div>
+        <br />
+        <div class="password">
+          <gb-input
+            v-model="password"
+            label="Password"
+            type="password"
+            placeholder="Password is required"
+            :error="errorPassword"
+            :status="statusPassword"
+            @submit="checkAuth"
           />
           <gb-button
-            @click="checkUsername"
-            :class="status + '_valid'"
-            :disabled="waitName"
+            @click="checkAuth"
+            :disabled="waitAuth"
+            :class="statusPassword + '_valid'"
           >
-            Validate
+            Connect
           </gb-button>
         </div>
-        <!-- <p v-if="user.pass_id">
-          Pass ID :
-          <span class="pass_id">{{ user.pass_id }}</span>
-        </p> -->
+      </div>
+      <div v-if="token">
+        <gb-button @click="onDisconnect" color="black" full-width>
+          Disconnect
+        </gb-button>
+        <p>
+          Token :
+          <span class="token">{{ token.substring(0,8) }}...</span>
+        </p>
       </div>
     </div>
   </div>
@@ -89,52 +97,32 @@ import axios from "axios";
 export default {
   name: "Home",
   async beforeMount() {
-    let user = await this.$db.user.get({ id: 0 });
-    if (user === undefined) {
-      user = {
-        id: 0,
-        _id: null,
-        username: "",
-        pass_id: null,
-        updated_at: new Date()
-      };
-      await this.$db.user.add(user);
-      // eslint-disable-next-line no-empty
-    }
-    this.onChangeUsername(user.username);
-    if (this.status === "normal") {
-      this.username = user.username;
-      this.user = user;
-    }
+    this.token = sessionStorage.getItem("token");
     window.addEventListener("online", () => (this.online = true));
     window.addEventListener("offline", () => (this.online = false));
   },
   data() {
     return {
-      code_game: null,
+      token: null,
       username: null,
-      info: null,
+      password: null,
       error: null,
-      waitCreate: false,
-      waitName: false,
-      status: "normal",
-      user: {
-        _id: null,
-        username: null,
-        pass_id: null
-      },
+      errorUsername: null,
+      errorPassword: null,
+      waitAuth: true,
+      statusUsername: "warning",
+      statusPassword: "warning",
+      status: "warning",
       deferredPrompt: null,
       online: true
     };
   },
   watch: {
-    code_game(v) {
-      if (v.length > 35) {
-        this.$router.push("/room/" + v);
-      }
-    },
     username(v) {
       this.onChangeUsername(v);
+    },
+    password(v) {
+      this.onChangePassword(v);
     }
   },
   created() {
@@ -150,63 +138,89 @@ export default {
   methods: {
     onChangeUsername(v) {
       if (v.length === 0) {
-        this.info = "Please add a username to start playing";
-        this.status = "warning";
-        this.error = null;
-      } else if (v.length < 3) {
-        this.error = "A minimum of 3 characters is required";
-        this.status = "error";
-        this.info = null;
+        this.statusUsername = "warning";
+        this.errorUsername = null;
+      } else if (v.length < 4) {
+        this.errorUsername = "A minimum of 4 characters is required";
+        this.statusUsername = "error";
       } else if (v.length > 13) {
-        this.error = "A maximum of 12 characters is required";
-        this.status = "error";
-        this.info = null;
+        this.errorUsername = "A maximum of 12 characters is required";
+        this.statusUsername = "error";
       } else if (!/^[\w.]*$/.test(v)) {
-        this.error =
+        this.errorUsername =
           'you can only use the following characters: "A-z" "0-9" "_"';
-        this.status = "error";
-        this.info = null;
+        this.statusUsername = "error";
       } else {
-        this.info = null;
-        this.error = null;
+        this.errorUsername = null;
+        this.statusUsername = "normal";
+      }
+
+      if (
+        this.statusUsername === "normal" &&
+        this.statusPassword === "normal"
+      ) {
+        this.waitAuth = false;
         this.status = "normal";
+      } else {
+        this.waitAuth = true;
+        this.status = "error";
       }
     },
-    async checkUsername() {
-      this.waitName = true;
-      if (this.status === "normal") {
-        let user = await this.$db.user.get({ id: 0 });
-        var self = this;
-        if (!user.pass_id) {
+    onChangePassword(v) {
+      if (v.length === 0) {
+        this.statusPassword = "warning";
+        this.errorPassword = null;
+      } else if (v.length < 8) {
+        this.errorPassword = "A minimum of 8 characters is required";
+        this.statusPassword = "error";
+      } else {
+        this.errorPassword = null;
+        this.statusPassword = "normal";
+      }
+
+      if (
+        this.statusUsername === "normal" &&
+        this.statusPassword === "normal"
+      ) {
+        this.waitAuth = false;
+        this.status = "normal";
+      } else {
+        this.waitAuth = true;
+        this.status = "error";
+      }
+    },
+    async checkAuth() {
+      if (!this.token) {
+        if (
+          this.statusUsername === "normal" &&
+          this.statusPassword === "normal"
+        ) {
+          this.waitAuth = false;
+          this.status = "normal";
           await axios
-            .post("https://dino-srv.azurewebsites.net/api/user/create", {
-              username: this.username
+            .post("/api/v1/user/signin", {
+              username: this.username,
+              password: this.password
             })
             .then(response => {
-              user.username = response.data.username;
-              user.pass_id = response.data.passId;
-              user._id = response.data._id;
+              sessionStorage.setItem("token", response.data);
+              this.token = response.data;
+              // location.reload(true);
             })
             .catch(() => {
               self.status = "error";
-              self.error = "Cannot connect to the server";
+              self.errorUsername = "Cannot connect to the server";
             });
         } else {
-          user.username = this.username;
-          await axios
-            .patch("https://dino-srv.azurewebsites.net/api/user/update", {
-              username: this.username,
-              passId: user.pass_id
-            })
-            .catch(() => {
-              self.status = "error";
-              self.error = "Cannot connect to the server";
-            });
+          this.waitAuth = true;
+          this.status = "error";
         }
-        await this.$db.user.update(0, user);
-        this.user = user;
-        this.waitName = false;
       }
+    },
+    onDisconnect() {
+      sessionStorage.removeItem("token");
+      this.token = null;
+      // location.reload(true);
     },
     async install() {
       document.getElementById("btn-download").classList.add("load");
@@ -215,22 +229,8 @@ export default {
       }, 1000);
       this.deferredPrompt.prompt();
     },
-    async creatNewGame() {
-      this.waitCreate = true;
-      const self = this;
-      const passId = {
-        passId: this.user.pass_id
-      };
-      axios
-        .post("https://dino-srv.azurewebsites.net/api/game/create", passId)
-        .then(async response => {
-          this.$router.push("/room/" + response.data.code);
-          self.waitCreate = false;
-        })
-        .catch(error => {
-          console.error("There was an error!", error);
-          self.waitCreate = false;
-        });
+    async newGame() {
+      this.$router.push("/new-quiz");
     }
   }
 };
@@ -243,9 +243,8 @@ export default {
   justify-content: center;
   height: 100vh;
 
-  .error_valid,
-  .warning_valid {
-    display: none;
+  .error_valid {
+    margin-bottom: 50px;
   }
 
   .content {
@@ -267,7 +266,7 @@ export default {
     }
   }
 
-  .username {
+  .password {
     display: flex;
     align-items: flex-end;
     // margin-bottom: 30px;
@@ -282,7 +281,7 @@ export default {
     }
   }
 
-  .pass_id {
+  .token {
     margin-left: 10px;
     background-color: #222c3c;
     box-shadow: 0 1px 5px 0 #18191a;

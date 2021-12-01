@@ -5,27 +5,12 @@
 </template>
 
 <script>
-import axios from "axios";
 export default {
   async beforeMount() {
-    const user = await this.$db.user.get({ id: 0 });
-    if ((!user || !user.pass_id) && this.$route.path !== "/") {
+    if (!"token" && this.$route.path !== "/") {
       this.$router.push("/");
     }
-    const self = this;
-    window.addEventListener("online", async () => {
-      const actions = await this.$db.action.where({ status: "wait" }).toArray();
-      actions.forEach(a => {
-        axios
-          .post("https://dino-srv.azurewebsites.net/api/game/action", a.body)
-          .then(() => {
-            self.$db.action.delete(a.id);
-          })
-          .catch(error => {
-            console.error(error);
-          });
-      });
-    });
+    window.addEventListener("online", async () => {});
   }
 };
 </script>

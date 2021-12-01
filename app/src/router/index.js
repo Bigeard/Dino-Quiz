@@ -1,10 +1,11 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
 import Home from "../views/Home.vue";
-import Game from "../views/Game.vue";
-import Room from "../views/Room.vue";
+import HistoryQuiz from "../views/HistoryQuiz.vue";
+import NewQuiz from "../views/NewQuiz.vue";
+import Quiz from "../views/Quiz.vue";
+import Signup from "../views/Signup.vue";
 import Page404 from "../views/Page404.vue";
-import AllGames from "../views/AllGames.vue";
 
 Vue.use(VueRouter);
 
@@ -24,19 +25,25 @@ const routes = [
       import(/* webpackChunkName: "about" */ "../views/About.vue")
   },
   {
-    path: "/allgames",
-    name: "AllGames",
-    component: AllGames
+    path: "/history",
+    name: "History",
+    component: HistoryQuiz
   },
   {
-    path: "/game/:code",
-    name: "Game",
-    component: Game
+    path: "/new-quiz",
+    name: "New Quiz",
+    component: NewQuiz
   },
   {
-    path: "/room/:code",
-    name: "Room",
-    component: Room
+    path: "/quiz",
+    name: "Quiz",
+    component: Quiz,
+    props: true
+  },
+  {
+    path: "/signup",
+    name: "Sign up",
+    component: Signup
   },
   {
     path: "*",

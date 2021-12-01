@@ -1,6 +1,25 @@
 version: '3'
 services:
 
+  # NGINX
+  nginx:
+    container_name: nginx
+    image: nginx:alpine
+    volumes:
+      - ./docker/nginx/:/etc/nginx/conf.d/
+    ports:
+      - 80:80
+    links:
+      - node_auth
+      - node_quiz
+      - node_history
+      - node_app
+    depends_on:
+      - node_auth
+      - node_quiz
+      - node_history
+      - node_app
+
   # MICRO AUTH
   node_auth:
     container_name: node_auth
@@ -22,7 +41,7 @@ services:
     ports:
       - 27017:27017
     volumes:
-      - ./data/db-auth:/data/db
+      - ./docker/db-auth:/data/db
 
   # MICRO QUIZ 
   node_quiz:
@@ -45,7 +64,7 @@ services:
     ports:
       - 27018:27017
     volumes:
-      - ./data/db-quiz:/data/db
+      - ./docker/db-quiz:/data/db
 
   # MICRO HISTORY 
   node_history:
@@ -68,7 +87,7 @@ services:
     ports:
       - 27019:27017
     volumes:
-      - ./data/db-history:/data/db
+      - ./docker/db-history:/data/db
 
   # MICRO WEB APP 
   node_app:

@@ -1,37 +1,11 @@
 <template>
   <div class="about">
-    <gb-heading tag="h1" class="logo"
-      >Dino <img src="../assets/game/zorfiL.gif" alt="Dino"
-    /></gb-heading>
+    <gb-heading tag="h1" class="logo">Dino Quiz</gb-heading>
 
     <div class="author">
-      <gb-heading tag="h1">Axel Ollivier</gb-heading>
-      <gb-heading tag="h1">Clement Pageaux</gb-heading>
-      <gb-heading tag="h1">Corentin Guiard</gb-heading>
-      <gb-heading tag="h1">Bigeard</gb-heading>
-    </div>
-
-    <div class="goal">
-      <gb-heading tag="h2">Goal of the game : </gb-heading>
-      <gb-heading tag="p"
-        >This game is a turn-based battleRoyal. The object of the games is to
-        succeed in being the last survivor.
-      </gb-heading>
-    </div>
-
-    <div class="rules">
-      <gb-heading tag="h2">Rule of the game : </gb-heading>
-      <gb-heading tag="p"
-        >Each player starts with the same amount of health, attack and movement
-        points.<br />
-        To be able to play your turn, you will have to wait for the other
-        players to finish their turn.<br />
-        Each turn, you can either move to a green square, move to a square with
-        an item, or attack a player.<br />
-        At the end of your turn, it must pass to the next player's turn.<br />
-        By collecting items, you will be able to increase your stats and have a
-        better chance of surviving.
-      </gb-heading>
+      <gb-heading tag="h1">Marceau David</gb-heading>
+      <gb-heading tag="h1">Geoffrey Clermont</gb-heading>
+      <gb-heading tag="h1">Robin Bigeard</gb-heading>
     </div>
 
     <div class="info">
@@ -65,6 +39,7 @@ export default {
 .about {
   padding: 10px;
   margin-bottom: 180px;
+  margin-top: 20px;
 
   .logo {
     margin-top: 15px;
@@ -79,6 +54,7 @@ export default {
   }
 
   .author {
+    margin-top: 50px;
     margin-bottom: 30px;
   }
 

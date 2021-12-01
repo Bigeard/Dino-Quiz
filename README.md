@@ -1,5 +1,6 @@
 # Dino Quiz
 
+![Architecture Image](./doc/screenshot.png)
 ## Groupe
 
 - Marceau David
@@ -13,6 +14,8 @@
 - Server Quiz : `/quiz`
 - Server History : `/history`
 - Docker Volumes (mongoDB + Nginx) : `/docker`
+
+![Architecture Image](./doc/architecture.png)
 
 # Start project DEV
 Instal docker and docker-compose,

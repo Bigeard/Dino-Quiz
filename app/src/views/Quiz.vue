@@ -1,13 +1,16 @@
 <template>
   <div class="quiz">
     <div class="option">
-      <div>
-        <gb-button
-          class="icon icon-home"
-          @click="$router.push('/')"
-          right-icon="home"
-        />
-      </div>
+      <gb-button
+        class="icon icon-home"
+        @click="$router.push('/')"
+        right-icon="home"
+      />
+      <gb-button
+        class="icon icon-more"
+        @click="$router.push('/new-quiz')"
+        right-icon="more"
+      />
     </div>
     <div>
       <div class="content">
@@ -29,7 +32,7 @@
           </gb-heading>
           <gb-heading class="quiz-question" tag="p" weight="bold">
             {{
-              quizs.length / score >= 2
+              quizs.length / score > 2
                 ? "Try your best next time 😅"
                 : "Well done ! 🎉"
             }}
@@ -72,11 +75,13 @@
 </template>
 
 <script>
+import axios from "axios";
 export default {
   name: "Quiz",
   beforeMount() {
     console.info(this.$route.params);
     this.quizs = this.$route.params.quizs;
+    this.options = this.$route.params.options;
     if (this.quizs === undefined) {
       this.$router.push({ path: "new-quiz" });
     }
@@ -95,6 +100,7 @@ export default {
         "Wooa !",
         "You are cheating ? :3"
       ],
+      options: null,
       quizs: [],
       resultDisplay: false,
       score: 0
@@ -109,6 +115,7 @@ export default {
         q.error = null;
         q.success = null;
         q.radios = [];
+        q.text_question = this.convertSpecialCharacters(q.text_question);
         q.incorrect_answers.forEach(a => {
           q.radios.push({ label: a, value: a });
         });
@@ -124,14 +131,9 @@ export default {
       });
     },
     validateQuiz() {
-      console.log(this.quizs);
       this.quizs.forEach((q, i) => {
         if (q.correct_answer === q.result) {
           q.error = null;
-          console.log(
-            "correct",
-            Math.floor(Math.random() * this.success_message.length + 0)
-          );
           q.success = this.success_message[
             Math.floor(Math.random() * this.success_message.length + 0)
           ];
@@ -143,7 +145,37 @@ export default {
           this.$set(this.quizs, i, q);
         }
       });
+      axios
+        .post(
+          "/api/v1/history",
+          {
+            score: this.score,
+            category: this.options?.category,
+            difficulty: this.options?.difficulty,
+            amount_question: this.quizs.length
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${sessionStorage.getItem("token")}`
+            }
+          }
+        )
+        .then(r => {
+          console.info("Save in history", r);
+        })
+        .catch(e => {
+          console.error("There was an error !", e);
+        });
+
       this.resultDisplay = true;
+    },
+    convertSpecialCharacters(newString) {
+      return newString
+        .replace(/&amp;/g, "&")
+        .replace(/&gt;/g, ">")
+        .replace(/&lt;/g, "<")
+        .replace(/&quot;/g, '"')
+        .replace(/&#039;/g, "'");
     }
   }
 };
@@ -246,12 +278,6 @@ export default {
   }
   100% {
     background-position: 0% 50%;
-  }
-}
-
-@media (max-width: 875px) {
-  .game {
-    overflow: scroll;
   }
 }
 </style>

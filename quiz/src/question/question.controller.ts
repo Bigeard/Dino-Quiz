@@ -16,7 +16,7 @@ export class QuestionController {
     @Query('amount_question') amount_question: number,
     @Query('category') category: string,
     @Query('difficulty') difficulty: string,
-  ): Promise<Question[]> {
+  ): Promise<any> {
     return await this.questionService.findAllWithParameters(
       amount_question,
       category,

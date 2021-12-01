@@ -47,14 +47,14 @@
       </div>
       <gb-divider />
       <!-- User Info -->
-      <div class="user">
-        <div class="email">
+      <div class="user" v-if="!token">
+        <div class="username">
           <gb-input
-            v-model="email"
-            label="Email"
-            placeholder="Email is required"
-            :error="errorEmail"
-            :status="statusEmail"
+            v-model="username"
+            label="Username"
+            placeholder="Username is required"
+            :error="errorUsername"
+            :status="statusUsername"
             @submit="checkAuth"
           />
         </div>
@@ -77,27 +77,15 @@
             Connect
           </gb-button>
         </div>
-        <gb-divider />
-        <gb-button @click="$router.push('/signup')" full-width>
-          Sign up
+      </div>
+      <div v-if="token">
+        <gb-button @click="onDisconnect" color="black" full-width>
+          Disconnect
         </gb-button>
-        <gb-button @click="$router.push('/history')" style="width: 100%">
-          History
-        </gb-button>
-        <gb-button @click="$router.push('/new-quiz')" style="width: 100%">
-          New Quiz
-        </gb-button>
-        <gb-button @click="$router.push('/quiz')" style="width: 100%">
-          Quiz
-        </gb-button>
-        <gb-button @click="$router.push('/about')" style="width: 100%">
-          About
-        </gb-button>
-
-        <!-- <p v-if="token">
+        <p>
           Token :
-          <span class="token">{{ token }}</span>
-        </p> -->
+          <span class="token">{{ token.substring(0,8) }}...</span>
+        </p>
       </div>
     </div>
   </div>
@@ -109,19 +97,20 @@ import axios from "axios";
 export default {
   name: "Home",
   async beforeMount() {
+    this.token = sessionStorage.getItem("token");
     window.addEventListener("online", () => (this.online = true));
     window.addEventListener("offline", () => (this.online = false));
   },
   data() {
     return {
       token: null,
-      email: null,
+      username: null,
       password: null,
       error: null,
-      errorEmail: null,
+      errorUsername: null,
       errorPassword: null,
       waitAuth: true,
-      statusEmail: "warning",
+      statusUsername: "warning",
       statusPassword: "warning",
       status: "warning",
       deferredPrompt: null,
@@ -129,8 +118,8 @@ export default {
     };
   },
   watch: {
-    email(v) {
-      this.onChangeEmail(v);
+    username(v) {
+      this.onChangeUsername(v);
     },
     password(v) {
       this.onChangePassword(v);
@@ -147,23 +136,29 @@ export default {
     });
   },
   methods: {
-    onChangeEmail(v) {
+    onChangeUsername(v) {
       if (v.length === 0) {
-        this.statusEmail = "warning";
-        this.errorEmail = null;
-      } else if (
-        !/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(
-          v
-        )
-      ) {
-        this.errorEmail = "You can only use email format";
-        this.statusEmail = "error";
+        this.statusUsername = "warning";
+        this.errorUsername = null;
+      } else if (v.length < 4) {
+        this.errorUsername = "A minimum of 4 characters is required";
+        this.statusUsername = "error";
+      } else if (v.length > 13) {
+        this.errorUsername = "A maximum of 12 characters is required";
+        this.statusUsername = "error";
+      } else if (!/^[\w.]*$/.test(v)) {
+        this.errorUsername =
+          'you can only use the following characters: "A-z" "0-9" "_"';
+        this.statusUsername = "error";
       } else {
-        this.errorEmail = null;
-        this.statusEmail = "normal";
+        this.errorUsername = null;
+        this.statusUsername = "normal";
       }
 
-      if (this.statusEmail === "normal" && this.statusPassword === "normal") {
+      if (
+        this.statusUsername === "normal" &&
+        this.statusPassword === "normal"
+      ) {
         this.waitAuth = false;
         this.status = "normal";
       } else {
@@ -183,7 +178,10 @@ export default {
         this.statusPassword = "normal";
       }
 
-      if (this.statusEmail === "normal" && this.statusPassword === "normal") {
+      if (
+        this.statusUsername === "normal" &&
+        this.statusPassword === "normal"
+      ) {
         this.waitAuth = false;
         this.status = "normal";
       } else {
@@ -193,26 +191,36 @@ export default {
     },
     async checkAuth() {
       if (!this.token) {
-        if (this.statusEmail === "normal" && this.statusPassword === "normal") {
+        if (
+          this.statusUsername === "normal" &&
+          this.statusPassword === "normal"
+        ) {
           this.waitAuth = false;
           this.status = "normal";
           await axios
-            .post("http://localhost:3000/api/v1/signin", {
-              email: this.email,
+            .post("/api/v1/user/signin", {
+              username: this.username,
               password: this.password
             })
             .then(response => {
-              this.token = response.data.token;
+              sessionStorage.setItem("token", response.data);
+              this.token = response.data;
+              // location.reload(true);
             })
             .catch(() => {
               self.status = "error";
-              self.errorEmail = "Cannot connect to the server";
+              self.errorUsername = "Cannot connect to the server";
             });
         } else {
           this.waitAuth = true;
           this.status = "error";
         }
       }
+    },
+    onDisconnect() {
+      sessionStorage.removeItem("token");
+      this.token = null;
+      // location.reload(true);
     },
     async install() {
       document.getElementById("btn-download").classList.add("load");

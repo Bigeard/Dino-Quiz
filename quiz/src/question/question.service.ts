@@ -24,13 +24,17 @@ export class QuestionService {
   ): Promise<Question[]> {
     let quiz = [];
     let questions;
-    if (!category) {
-      questions = await this.questionModel.find({ difficulty });
-    } else if (!difficulty) {
-      questions = await this.questionModel.find({ category });
-    } else {
-      questions = await this.questionModel.find({ category, difficulty });
+    let findParams = {};
+    if (category !== 'any' && difficulty !== 'any') {
+      if (!category || category === 'any') {
+        findParams = { difficulty };
+      } else if (!difficulty || difficulty === 'any') {
+        findParams = { category };
+      } else {
+        findParams = { category, difficulty };
+      }
     }
+    questions = await this.questionModel.find(findParams);
     if (questions.length < amount_question) {
       quiz = questions;
     } else {

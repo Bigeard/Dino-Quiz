@@ -14,7 +14,7 @@
             required
           />
         </div>
-        <div class="email">
+        <!-- <div class="email">
           <gb-input
             v-model="email"
             label="Email"
@@ -24,7 +24,7 @@
             @submit="checkAuth"
             required
           />
-        </div>
+        </div> -->
         <br />
         <div class="password">
           <gb-input
@@ -48,11 +48,7 @@
           @click="checkAuth()"
           right-icon="arrow_forward"
           :disabled="
-            !(
-              statusEmail === 'normal' &&
-              statusPassword === 'normal' &&
-              statusUsername === 'normal'
-            )
+            !(statusPassword === 'normal' && statusUsername === 'normal')
           "
           uppercase
         >
@@ -72,13 +68,13 @@ export default {
     return {
       waitAuth: true,
       username: null,
-      email: null,
+      // email: null,
       password: null,
       errorUsername: null,
-      errorEmail: null,
+      // errorEmail: null,
       errorPassword: null,
       statusUsername: "warning",
-      statusEmail: "warning",
+      // statusEmail: "warning",
       statusPassword: "warning"
     };
   },
@@ -86,9 +82,9 @@ export default {
     username(v) {
       this.onChangeUsername(v);
     },
-    email(v) {
-      this.onChangeEmail(v);
-    },
+    // email(v) {
+    //   this.onChangeEmail(v);
+    // },
     password(v) {
       this.onChangePassword(v);
     }
@@ -125,34 +121,34 @@ export default {
         this.status = "error";
       }
     },
-    onChangeEmail(v) {
-      if (v.length === 0) {
-        this.statusEmail = "warning";
-        this.errorEmail = null;
-      } else if (
-        !/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(
-          v
-        )
-      ) {
-        this.errorEmail = "You can only use email format";
-        this.statusEmail = "error";
-      } else {
-        this.errorEmail = null;
-        this.statusEmail = "normal";
-      }
+    // onChangeEmail(v) {
+    //   if (v.length === 0) {
+    //     this.statusEmail = "warning";
+    //     this.errorEmail = null;
+    //   } else if (
+    //     !/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(
+    //       v
+    //     )
+    //   ) {
+    //     this.errorEmail = "You can only use email format";
+    //     this.statusEmail = "error";
+    //   } else {
+    //     this.errorEmail = null;
+    //     this.statusEmail = "normal";
+    //   }
 
-      if (
-        this.statusEmail === "normal" &&
-        this.statusPassword === "normal" &&
-        this.statusUsername === "normal"
-      ) {
-        this.waitAuth = false;
-        this.status = "normal";
-      } else {
-        this.waitAuth = true;
-        this.status = "error";
-      }
-    },
+    //   if (
+    //     this.statusEmail === "normal" &&
+    //     this.statusPassword === "normal" &&
+    //     this.statusUsername === "normal"
+    //   ) {
+    //     this.waitAuth = false;
+    //     this.status = "normal";
+    //   } else {
+    //     this.waitAuth = true;
+    //     this.status = "error";
+    //   }
+    // },
     onChangePassword(v) {
       if (v.length === 0) {
         this.statusPassword = "warning";
@@ -179,17 +175,18 @@ export default {
     },
     async checkAuth() {
       if (
-        this.statusEmail === "normal" &&
+        // this.statusEmail === "normal" &&
         this.statusPassword === "normal" &&
         this.statusUsername === "normal"
       ) {
         axios
-          .post(`http://localshot:3000/api/v1/signup`, {
+          .post(`/api/v1/user/signup`, {
             username: this.username,
-            email: this.email,
+            // email: this.email,
             password: this.password
           })
-          .then(() => {
+          .then(response => {
+            sessionStorage.setItem("token", response.data);
             this.$router.push("/");
           })
           .catch(e => {
@@ -225,12 +222,12 @@ export default {
       margin-top: 40px;
     }
 
-    .email {
-      margin-top: 20px;
-    }
+    // .email {
+    //   margin-top: 20px;
+    // }
 
-    .password {
-    }
+    // .password {
+    // }
   }
 
   .choice_button {

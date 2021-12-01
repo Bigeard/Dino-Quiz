@@ -8,7 +8,20 @@
       <br />
       <div>
         <h2>History :</h2>
-        <div v-for="quiz in quizs" :key="quiz.id"></div>
+        <div v-for="quiz in quizs" :key="quiz.id" class="score-history">
+          <gb-heading class="quiz-question" tag="h1" weight="bold">
+            Score {{ quiz.score }}/{{ quiz.amount_question }}
+          </gb-heading>
+          <gb-heading class="quiz-question" tag="p" weight="bold">
+            {{
+              quiz.amount_question / quiz.score > 2
+                ? "Try your best next time 😅"
+                : "Well done ! 🎉"
+            }}
+          </gb-heading>
+          <gb-badge filled>{{ quiz.category }}</gb-badge>
+          <gb-badge color="black" filled>Difficulty : {{ quiz.difficulty }}</gb-badge>
+        </div>
       </div>
     </div>
   </div>
@@ -20,7 +33,7 @@ import axios from "axios";
 export default {
   name: "HistoryQuiz",
   async beforeMount() {
-    this.findGames();
+    await this.findQuizs();
   },
   data() {
     return {
@@ -38,14 +51,17 @@ export default {
     async findQuizs() {
       let self = this;
       await axios
-        .get("https://localhost:3000/api/v1/histories/me", {
-          user: this.user._id
+        .get("/api/v1/history/me", {
+          headers: {
+            Authorization: `Bearer ${sessionStorage.getItem("token")}`
+          }
         })
         .then(response => {
-          self.quizs = response.data;
+          this.quizs = response.data;
+          console.log(self.quizs);
         })
         .catch(() => {
-          self.online = false;
+          this.online = false;
         });
     },
     splitState(status) {
@@ -91,6 +107,40 @@ export default {
     margin: 6px 6px 30px 6px;
     padding: 3%;
     text-align: center;
+  }
+
+  .score-history {
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    border-radius: 10px;
+    margin-top: 30px;
+    background: linear-gradient(-45deg, #12c2ca, #b68db7, #0c6cb9);
+    background-size: 400% 400%;
+    animation: Gradient 8s ease infinite;
+
+    h1,
+    p {
+      margin: 0 !important;
+    }
+
+    .gb-base-badge {
+      margin: 2px;
+    }
+  }
+
+  @keyframes Gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
   }
 }
 </style>

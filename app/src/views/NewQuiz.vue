@@ -22,6 +22,14 @@
           class="select_difficulty"
           :options="optionsDifficulty"
         />
+
+        <gb-alert
+          class="alert-error"
+          v-if="error"
+          color="red"
+          @close="() => (this.error = null)"
+          >{{ error }}</gb-alert
+        >
       </div>
       <gb-divider class="divider-custom" />
       <div class="choice_button">
@@ -46,6 +54,7 @@ export default {
       amountQuestion: 10,
       category: "any",
       difficulty: "any",
+      error: null,
       optionsCategory: [
         { label: "Any Category", value: "any" },
         { label: "Entertainment: Music", value: "Entertainment: Music" },
@@ -68,14 +77,30 @@ export default {
     async startQuiz() {
       axios
         .get(
-          "http://localhost:3000/quiz/all"
-          // `http://localshot:3000/api/v1/quiz/amount_question=${this.amountQuestion}&category=${this.category}&difficulty=${this.difficulty}`
+          // "http://localhost/quiz/all"
+          `/api/v1/quiz?amount_question=${this.amountQuestion}&category=${this.category}&difficulty=${this.difficulty}`,
+          {
+            headers: {
+              Authorization: `Bearer ${sessionStorage.getItem("token")}`
+            }
+          }
         )
         .then(response => {
-          // this.$router.push("/quiz");
-          console.log(response.data);
           const quizs = response.data;
-          this.$router.push({ name: "Quiz", params: { quizs } });
+          if (response.data.length < 1) {
+            this.error = "We didn't find any question...";
+          } else {
+            this.$router.push({
+              name: "Quiz",
+              params: {
+                quizs,
+                options: {
+                  category: this.category,
+                  difficulty: this.difficulty
+                }
+              }
+            });
+          }
         })
         .catch(e => {
           console.error("There was an error !", e);
@@ -123,6 +148,10 @@ export default {
       width: 45% !important;
       height: 45px;
     }
+  }
+
+  .alert-error {
+    margin-top: 30px !important;
   }
 }
 </style>

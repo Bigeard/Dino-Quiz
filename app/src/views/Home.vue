@@ -77,6 +77,14 @@
             Connect
           </gb-button>
         </div>
+      <gb-divider />
+      <gb-button
+        v-if="!token"
+        @click="$router.push('/signup')"
+        full-width
+      >
+        Sign up
+      </gb-button>
       </div>
       <div v-if="token">
         <gb-button @click="onDisconnect" color="black" full-width>

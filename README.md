@@ -24,13 +24,14 @@ Instal; docker and docker-compose,
 then start this command :
 
 ```bash
-docker-compose -f docker-compose.yml up
+docker-compose up
+# docker-compose build
 ```
 
 Go to this url :
 http://localhost/ (127.0.0.1:80)
 
-## Import database :
+## Import database (Optional) :
 
 Install `mongoimport`
 https://docs.mongodb.com/database-tools/installation/installation/

@@ -1,7 +1,10 @@
 <template>
   <div class="new_quiz">
     <div class="content">
-      <gb-heading tag="h1" class="logo">Start New Quiz</gb-heading>
+      <gb-heading
+        tag="h1"
+        class="logo"
+      >Start New Quiz</gb-heading>
       <div class="form_quiz">
         <gb-input-numeric
           v-model="amountQuestion"
@@ -28,16 +31,23 @@
           v-if="error"
           color="red"
           @close="() => (this.error = null)"
-          >{{ error }}</gb-alert
-        >
+        >{{ error }}</gb-alert>
       </div>
       <gb-divider class="divider-custom" />
       <div class="choice_button">
-        <gb-button @click="$router.push('/')" color="black" right-icon="home">
+        <gb-button
+          @click="$router.push('/')"
+          color="black"
+          right-icon="home"
+        >
           Home
         </gb-button>
-        <gb-button @click="startQuiz()" right-icon="arrow_forward" uppercase>
-          Strart Game
+        <gb-button
+          @click="startQuiz()"
+          right-icon="arrow_forward"
+          uppercase
+        >
+          Start Game
         </gb-button>
       </div>
     </div>
@@ -48,7 +58,7 @@
 import axios from "axios";
 export default {
   name: "NewQuiz",
-  beforeMount() {},
+  beforeMount() { },
   data() {
     return {
       amountQuestion: 10,

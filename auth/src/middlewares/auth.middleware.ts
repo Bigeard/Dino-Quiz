@@ -1,8 +1,13 @@
-import { Injectable, NestMiddleware } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NestMiddleware,
+} from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import * as jwt from 'jsonwebtoken';
 
-function verify(token: string, key: string, options: Object): Promise<string> {
+function verify(token: string, key: string, options: Object) {
   return new Promise((resolve, reject) => {
     jwt.verify(token, key, options, (error, token) => {
       if (error) {
@@ -15,7 +20,7 @@ function verify(token: string, key: string, options: Object): Promise<string> {
 }
 
 @Injectable()
-export class LoggerMiddleware implements NestMiddleware {
+export class AuthMiddleware implements NestMiddleware {
   async use(req: any, res: Response, next: NextFunction) {
     const bearerHeader = req.headers['authorization'];
     if (typeof bearerHeader !== 'undefined') {
@@ -23,16 +28,15 @@ export class LoggerMiddleware implements NestMiddleware {
       const bearerToken = bearer[1];
       req.token = bearerToken;
       try {
-        await verify(req.token, process.env.JWT_SECRET, {});
-        next();
+        let test = await verify(req.token, process.env.JWT_SECRET, {});
+        if (test) {
+          next();
+        }
       } catch (err) {
-        res.status(403).json({ error: 'Invalid token' });
+        throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
       }
     } else {
-      res
-        .status(403)
-        .json({ error: 'No token available on authorization header' });
+      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
     }
-    next();
   }
 }

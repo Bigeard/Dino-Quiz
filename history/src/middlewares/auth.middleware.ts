@@ -20,7 +20,7 @@ function verify(token: string, key: string, options: Object): Promise<string> {
 }
 
 @Injectable()
-export class LoggerMiddleware implements NestMiddleware {
+export class AuthMiddleware implements NestMiddleware {
   async use(req: any, res: Response, next: NextFunction) {
     const bearerHeader = req.headers['authorization'];
     if (typeof bearerHeader !== 'undefined') {

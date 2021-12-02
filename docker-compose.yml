@@ -6,7 +6,7 @@ services:
     container_name: nginx
     image: nginx:alpine
     volumes:
-      - ./docker/nginx/:/etc/nginx/conf.d/
+      - ./nginx/:/etc/nginx/conf.d/
     ports:
       - 80:80
     links:
@@ -26,8 +26,6 @@ services:
     build: ./auth
     ports:
       - 3001:3001
-    volumes:
-      - ./auth:/src
     links:
       - mongo_auth
     depends_on:
@@ -41,7 +39,7 @@ services:
     ports:
       - 27017:27017
     volumes:
-      - ./docker/db-auth:/data/db
+      - ./mongo/db-auth:/data/db
 
   # MICRO QUIZ 
   node_quiz:
@@ -49,8 +47,6 @@ services:
     build: ./quiz
     ports:
       - 3000:3000
-    volumes:
-      - ./quiz:/src
     links:
       - mongo_quiz
     depends_on:
@@ -64,7 +60,14 @@ services:
     ports:
       - 27018:27017
     volumes:
-      - ./docker/db-quiz:/data/db
+      - ./mongo/db-quiz:/data/db
+  mongo-seed:
+    build: ./mongo
+    links:
+      - mongo_quiz
+    depends_on:
+      - mongo_quiz
+
 
   # MICRO HISTORY 
   node_history:
@@ -72,8 +75,6 @@ services:
     build: ./history
     ports:
       - 3002:3002
-    volumes:
-      - ./history:/src
     links:
       - mongo_history
     depends_on:
@@ -87,7 +88,7 @@ services:
     ports:
       - 27019:27017
     volumes:
-      - ./docker/db-history:/data/db
+      - ./mongo/db-history:/data/db
 
   # MICRO WEB APP 
   node_app:
@@ -95,5 +96,3 @@ services:
     build: ./app
     ports:
       - 8080:8080
-    volumes:
-      - ./app:/src
